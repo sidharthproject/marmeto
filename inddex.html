@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
+    />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div>
+      <header class="header">
+        <div class="logo">
+          <img src="./logo.png" alt="" />
+          <h1>Marmeto</h1>
+        </div>
+
+        <div class="navitem">
+          <p>Home</p>
+          <p>Shop</p>
+          <p>About</p>
+          <p>Contact</p>
+        </div>
+        <div class="menu-bar">
+          <i class="fa-solid fa-bars"></i>
+        </div>
+
+        <div class="icons">
+          <p>
+            <i class="fa-solid fa-magnifying-glass"></i>
+          </p>
+          <p>
+            <i class="fa-regular fa-heart"></i>
+          </p>
+          <p>
+            <i class="fa-solid fa-cart-shopping"></i>
+          </p>
+        </div>
+      </header>
+
+      <main class="headerimage">
+        <img src="./Group 78 (2).jpg" alt="" />
+      </main>
+
+      <section class="productlist">
+        <div class="productlistinfo">
+          <div class="productlistnavitem">
+            <p>Product</p>
+            <p1>Price</p1>
+            <div class="productlistnavitemtotal">
+              <p>Quantity</p>
+              <p>Subtotal</p>
+            </div>
+          </div>
+          <div class="cart-items"></div> <!-- dynamically populate items here -->
+        </div>
+      
+        <div class="productlistprice">
+          <div class="cart-heading">Cart Totals</div>
+          <div class="cart-totals">
+            <div class="subtotal">
+              <h1>Subtotal</h1>
+              <p class="cart-subtotal"> ₹0.00</p>
+            </div>
+            <div class="total">
+              <h1>Total</h3>
+              <p class="cart-total">₹0.00</p>
+            </div>
+          </div>
+          <button class="checkout-btn">Check Out</button>
+        </div>
+      </section>
+
+
+      <footer class="footer">
+
+        <div class="footericon">
+          <img src="./trophy 1.png" alt="">
+          <div class="footerinfo">
+            <h1>High Quality</h1>
+            <p>crafted from top materials</p>
+          </div>
+        </div>
+
+        <div class="footericon">
+          <img src="./guarantee.png" alt="">
+          <div class="footerinfo">
+            <h1>Warranty Protection</h1>
+
+            <p>Over 2 years</p>
+          </div>
+        </div>
+
+        <div class="footericon">
+          <img src="./shipping.png" alt="">
+          <div class="footerinfo">
+            <h1>Free Shipping</h1>
+            <p>Order over 150 $</p>
+          </div>
+        </div>
+
+        <div class="footericon">
+          <img src="./customer-support.png" alt="">
+          <div class="footerinfo">
+            <h1>24/7 support</h1>
+            <p>Dedicated support</p>
+          </div>
+        </div>
+
+      </footer>
+      <script>
+    // Fetch API data
+      fetch('https://cdn.shopify.com/s/files/1/0883/2188/4479/files/apiCartData.json?v=1728384889')
+        .then(response => response.json())
+        .then(data => {
+          populateCart(data.items);
+        })
+        .catch(error => console.error('Error fetching cart data:', error));
+      
+      // Function to format prices without the currency symbol
+      function formatCurrency(value) {
+        return new Intl.NumberFormat('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(value);
+      }
+      
+      // Function to populate cart items dynamically
+      function populateCart(items) {
+        const cartItemsContainer = document.querySelector('.cart-items');
+        let cartSubtotal = 0;
+        
+        
+        items.forEach(item => {
+          const itemSubtotal = item.price * item.quantity;
+          cartSubtotal += itemSubtotal;
+      
+          const cartItemHTML = `
+            <div class="cart-item" data-id="${item.id}">
+              <img src="${item.image}" alt="${item.name}" class="cart-item-image" />
+              <p class="itemtitle">${item.title}</p>
+              <p class="itemprice">${formatCurrency(item.price)}</p>
+              <p class = "cross"> X </p>
+              <div class="quantity">
+              <input  value="${item.quantity}" min="1" class="item-quantity" />
+              <p class="item-subtotal">${formatCurrency(itemSubtotal)}</p>
+              </div>
+              <button class="remove-item-btn">
+                <img src="./Vector.png" alt="">
+                </button>
+            </div>
+          `;
+      
+          cartItemsContainer.innerHTML += cartItemHTML;
+        });
+      
+        updateCartTotals(cartSubtotal);
+      
+        // Attach event listeners for quantity updates and remove actions
+        document.querySelectorAll('.item-quantity').forEach(input => {
+          input.addEventListener('change', updateQuantity);
+        });
+        document.querySelectorAll('.remove-item-btn').forEach(button => {
+          button.addEventListener('click', removeCartItem);
+        });
+      }
+      
+      // Function to update the total cart values
+      function updateCartTotals(subtotal) {
+        document.querySelector('.cart-subtotal').textContent = `Rs.  ${formatCurrency(subtotal)}`;
+        document.querySelector('.cart-total').textContent =`Rs.  ${formatCurrency(subtotal)} `; // Assuming no additional charges for simplicity
+      }
+      
+      // Function to update item quantity
+      function updateQuantity(event) {
+        const cartItem = event.target.closest('.cart-item');
+        const itemId = cartItem.dataset.id;
+        const newQuantity = parseInt(event.target.value);
+        const price = parseFloat(cartItem.querySelector('p:nth-child(3)').textContent.replace(/[₹,]/g, ''));
+      
+        const newSubtotal = newQuantity * price;
+        cartItem.querySelector('.item-subtotal').textContent = formatCurrency(newSubtotal);
+      
+        // Recalculate totals
+        let newCartSubtotal = 0;
+        document.querySelectorAll('.item-subtotal').forEach(subtotal => {
+          newCartSubtotal += parseFloat(subtotal.textContent.replace(/[,]/g, ''));
+        });
+        updateCartTotals(newCartSubtotal);
+      }
+      
+      // Function to remove an item from the cart
+      function removeCartItem(event) {
+        const cartItem = event.target.closest('.cart-item');
+        cartItem.remove();
+      
+        // Recalculate totals
+        let newCartSubtotal = 0;
+        document.querySelectorAll('.item-subtotal').forEach(subtotal => {
+          newCartSubtotal += parseFloat(subtotal.textContent.replace(/[,]/g, ''));
+        });
+        updateCartTotals(newCartSubtotal);
+      }
+         </script>   
+      
+    </div>
+  </body>
+</html>
